@@ -1,0 +1,129 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using SearchScopeAPI.SearchScope.Core.Interface;
+using SearchScopeAPI.SearchScope.Infrastructure.Data;
+using SearchScopeAPI.SearchScope.Infrastructure.Repositories;
+using SearchScopeAPI.SearchScope.Infrastructure.Services;
+using SearchScopeAPI.SerachScope.API;
+using SearchScopeAPI.SerachScope.API.Middleware;
+using System.Reflection;
+using System.Text;
+
+namespace SearchScopeAPI
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            // Add services to the container.
+
+            // Register CustomLogger.
+            builder.Services.AddSingleton<CustomLogger>();
+
+            // Register DbContext
+            builder.Services.AddDbContext<SearchScopeDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("SearchScopeSqlConnection")));
+
+            builder.Services.AddControllers();
+
+            // Configure JWT Authentication
+            var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtSettings["Issuer"],
+                        ValidAudience = jwtSettings["Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["IssuerSigningKey"]))
+                    };
+                });
+
+            // Configure Authorization
+            builder.Services.AddAuthorization();
+
+            // Register TokenService
+            builder.Services.AddScoped<ITokenService, TokenService>();
+
+            // Register Mediator
+            builder.Services.AddMediatR(config =>
+            {
+                config.RegisterServicesFromAssembly(typeof(Program).Assembly);
+            });
+
+            // Register Repositories
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
+            builder.Services.AddScoped<ISearchResultRepository, SearchResultRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+            // Configure Swagger for API documentation
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "SearchScope API", Version = "v1" });
+
+                // Add JWT Bearer Authorization in Swagger
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter 'Bearer' followed by a space and your token."
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+            });
+
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline
+            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "SearchScope API v1");
+            });
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.MapControllers();
+
+            app.Run();
+        }
+    }
+}
