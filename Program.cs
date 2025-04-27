@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SearchScopeAPI.SearchScope.Core.Interface;
+using SearchScopeAPI.SearchScope.Core.Utility;
 using SearchScopeAPI.SearchScope.Infrastructure.Data;
 using SearchScopeAPI.SearchScope.Infrastructure.Repositories;
-using SearchScopeAPI.SearchScope.Infrastructure.Services;
 using SearchScopeAPI.SerachScope.API.Logger;
 using SearchScopeAPI.SerachScope.API.Middleware;
 using System.Reflection;
@@ -21,6 +21,34 @@ namespace SearchScopeAPI
 
             // Add services to the container.
 
+            // Bind JwtSettings from configuration(appSettings.json)
+            var jwtSettings = new JwtSettings();
+            builder.Configuration.GetSection("JwtSettings").Bind(jwtSettings);
+            builder.Services.AddSingleton(jwtSettings);
+
+            // Configure Authentication and Authorization
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings.Issuer,
+                    ValidAudience = jwtSettings.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+                };
+            });
+
+            // Enable Authorization. 
+            builder.Services.AddAuthorization();
+
             // Register CustomLogger.
             builder.Services.AddSingleton<CustomLogger>();
 
@@ -29,29 +57,6 @@ namespace SearchScopeAPI
                 options.UseSqlServer(builder.Configuration.GetConnectionString("SearchScopeSqlConnection")));
 
             builder.Services.AddControllers();
-
-            // Configure JWT Authentication
-            var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtSettings["Issuer"],
-                        ValidAudience = jwtSettings["Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["IssuerSigningKey"]))
-                    };
-                });
-
-            // Configure Authorization
-            builder.Services.AddAuthorization();
-
-            // Register TokenService
-            builder.Services.AddScoped<ITokenService, TokenService>();
 
             // Register Mediator
             builder.Services.AddMediatR(config =>
@@ -78,7 +83,7 @@ namespace SearchScopeAPI
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    Type = SecuritySchemeType.Http,
+                    Type = SecuritySchemeType.ApiKey,
                     Scheme = "Bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using SearchScopeAPI.SerachScope.API.Logger;
+﻿using SearchScopeAPI.SerachScope.API.Logger;
 using System.Net;
 
 namespace SearchScopeAPI.SerachScope.API.Middleware

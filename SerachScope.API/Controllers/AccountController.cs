@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SearchScopeAPI.SearchScope.Application.Commands;
-using SearchScopeAPI.SearchScope.Core.Interface;
 
 namespace SearchScopeAPI.SerachScope.API.Controllers
 {
@@ -10,12 +9,10 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly ITokenService _tokenService;
 
-        public AccountController(IMediator mediator, ITokenService tokenService)
+        public AccountController(IMediator mediator)
         {
             _mediator = mediator;
-            _tokenService = tokenService;
         }
 
         /// <summary>

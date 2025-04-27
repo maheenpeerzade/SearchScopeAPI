@@ -1,14 +1,17 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SearchScopeAPI.SearchScope.Application.Queries;
 using SearchScopeAPI.SearchScope.Core.Utility;
 using SearchScopeAPI.SerachScope.API.Logger;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace SearchScopeAPI.SerachScope.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class SearchProductsController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -36,7 +39,6 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //[Authorize]
         [HttpGet]
         public async Task<IActionResult> SearchProducts([FromQuery] string? query, [FromQuery] string? filter, [FromQuery] ProductEnum? sortBy, bool isAscending = true)
         {
@@ -81,7 +83,6 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //[Authorize]
         [HttpGet("SearchHistory")]
         public async Task<IActionResult> GetSearchHistory([FromQuery] bool isAscending = true)
         {
@@ -129,7 +130,6 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //[Authorize]
         [HttpGet("SearchHistoryResult")]
         public async Task<IActionResult> GetSearchHistoryResult([FromQuery] int searchHistoryId, [FromQuery] SearchResultEnum? sortBy, [FromQuery] bool isAscending = true)
         {
@@ -167,8 +167,8 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
             {
                 var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
                 var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(token);
-                var userIdd = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimsConstant.UserId)?.Value;
-                if (!int.TryParse(userIdd, out var parsedUserId) || parsedUserId == 0)
+                var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userId, out var parsedUserId) || parsedUserId == 0)
                 {
                     return 0;
                 }
