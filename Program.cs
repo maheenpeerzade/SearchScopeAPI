@@ -6,7 +6,7 @@ using SearchScopeAPI.SearchScope.Core.Interface;
 using SearchScopeAPI.SearchScope.Infrastructure.Data;
 using SearchScopeAPI.SearchScope.Infrastructure.Repositories;
 using SearchScopeAPI.SearchScope.Infrastructure.Services;
-using SearchScopeAPI.SerachScope.API;
+using SearchScopeAPI.SerachScope.API.Logger;
 using SearchScopeAPI.SerachScope.API.Middleware;
 using System.Reflection;
 using System.Text;
@@ -104,26 +104,38 @@ namespace SearchScopeAPI
             var app = builder.Build();
 
             // Configure the HTTP request pipeline
+            // Developer exception page for detailed debugging during development
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            // Global exception handler middleware
             app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+            // Swagger setup
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "SearchScope API v1");
             });
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
+            // HTTPS redirection middleware
             app.UseHttpsRedirection();
 
+            // Routing middleware
+            app.UseRouting();
+
+            // Authentication and Authorization
             app.UseAuthentication();
             app.UseAuthorization();
 
+            // Map controllers explicitly (modern approach)
             app.MapControllers();
 
+            // Run the application
             app.Run();
+
         }
     }
 }

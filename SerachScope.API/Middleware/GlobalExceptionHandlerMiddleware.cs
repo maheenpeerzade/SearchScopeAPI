@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SearchScopeAPI.SerachScope.API.Logger;
+using System.Net;
 
 namespace SearchScopeAPI.SerachScope.API.Middleware
 {
@@ -21,39 +23,28 @@ namespace SearchScopeAPI.SerachScope.API.Middleware
             }
             catch (Exception ex)
             {
-                _customLogger.LogError(ex.ToString());
-                await HandleGlobalException(context, ex);
+                _customLogger.LogError(ex);
+                await HandleGlobalExceptionAsync(context, ex);
                 return;
             }
         }
 
-        private async Task HandleGlobalException(HttpContext context, Exception exception)
+        private async Task HandleGlobalExceptionAsync(HttpContext context, Exception exception)
         {
-            ProblemDetails problemDetails = null;
-            try
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.ContentType = "application/json";
+
+            // Prepare response body for the client
+            var response = new
             {
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                context.Response.ContentType = "application/json";
+                StatusCode = context.Response.StatusCode,
+                Message = "An unhandled exception has occurred.",
+                Detail = exception?.Message, // Include exception details if necessary
+                Path = context.Request.Path // The endpoint path where the exception occurred
+            };
 
-                var problemDetailsFactory = context.RequestServices.GetRequiredService<Microsoft.AspNetCore.Mvc.Infrastructure.ProblemDetailsFactory>();
-                problemDetails = problemDetailsFactory.CreateProblemDetails(context, StatusCodes.Status500InternalServerError, detail: "Internal Server Error");
-
-                if (exception != null)
-                {
-                    problemDetails.Detail = exception.Message;
-                }
-                else
-                {
-                    problemDetails.Detail = @"An unexpected error occured.";
-                }
-
-                await context.Response.WriteAsJsonAsync(problemDetails);
-            }
-            catch (Exception e)
-            {
-                _customLogger.LogError(e.ToString());
-                await context.Response.WriteAsJsonAsync(problemDetails);
-            }
+            // Write the response as JSON
+            await context.Response.WriteAsJsonAsync(response);
         }
     }
 }

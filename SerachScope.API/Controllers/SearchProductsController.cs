@@ -2,9 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using SearchScopeAPI.SearchScope.Application.Queries;
 using SearchScopeAPI.SearchScope.Core.Utility;
+using SearchScopeAPI.SerachScope.API.Logger;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace SearchScopeAPI.SerachScope.API
+namespace SearchScopeAPI.SerachScope.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -39,24 +40,32 @@ namespace SearchScopeAPI.SerachScope.API
         [HttpGet]
         public async Task<IActionResult> SearchProducts([FromQuery] string? query, [FromQuery] string? filter, [FromQuery] ProductEnum? sortBy, bool isAscending = true)
         {
-            _customLogger.LogInformation("SearchProducts started");
-            if (string.IsNullOrWhiteSpace(query))
+            try
             {
+                _customLogger.LogInformation("SearchProducts started");
+                if (string.IsNullOrWhiteSpace(query))
+                {
+                    _customLogger.LogWarning("Query cannot be empty");
+                    return BadRequest("Query cannot be empty");
+                }
+
+                var result = await _mediator.Send(new SearchProductsQuery(query, filter, sortBy, isAscending));
+
+                // Check for results.
+                if (result == null || !result.Any())
+                {
+                    _customLogger.LogWarning("No products are found.");
+                    return NoContent(); // Returns 204 No Content, if no products are found.
+                }
+
                 _customLogger.LogInformation("SearchProducts completed");
-                return BadRequest("Query cannot be empty");
+                return Ok(result); // Returns 200 OK with the product list
             }
-
-            var result = await _mediator.Send(new SearchProductsQuery(query, filter, sortBy, isAscending));
-
-            // Check for results.
-            if (result == null || !result.Any())
+            catch (Exception ex)
             {
-                _customLogger.LogInformation("SearchProducts completed");
-                return NoContent(); // Returns 204 No Content, if no products are found.
+                _customLogger.LogError(ex, "Failed to fetch products.");
+                return StatusCode(500, "Failed to fetch products.");
             }
-
-            _customLogger.LogInformation("SearchProducts completed");
-            return Ok(result); // Returns 200 OK with the product list
         }
 
         /// <summary>
@@ -76,25 +85,33 @@ namespace SearchScopeAPI.SerachScope.API
         [HttpGet("SearchHistory")]
         public async Task<IActionResult> GetSearchHistory([FromQuery] bool isAscending = true)
         {
-            _customLogger.LogInformation("SearchHistory started");
-            string token = Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
-            int userId = FetchUserId(token);
-            if (userId <= 0)
+            try
             {
-                _customLogger.LogInformation("SearchHistory completed");
-                return Unauthorized("User in unauthorized");
-            }
+                _customLogger.LogInformation("SearchHistory started");
+                string token = Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
+                int userId = FetchUserId(token);
+                if (userId <= 0)
+                {
+                    _customLogger.LogWarning("User in unauthorized");
+                    return Unauthorized("User in unauthorized");
+                }
 
-            var histories = await _mediator.Send(new GetSearchHistoryQuery(userId, isAscending));
-            // Check for results.
-            if (histories == null || !histories.Any())
+                var histories = await _mediator.Send(new GetSearchHistoryQuery(userId, isAscending));
+                // Check for results.
+                if (histories == null || !histories.Any())
+                {
+                    _customLogger.LogWarning("No search histories are found");
+                    return NoContent(); // Returns 204 No Content, if no search histories are found.
+                }
+
+                _customLogger.LogInformation("SearchHistory completed");
+                return Ok(histories);
+            }
+            catch (Exception ex)
             {
-                _customLogger.LogInformation("SearchHistory completed");
-                return NoContent(); // Returns 204 No Content, if no search histories are found.
+                _customLogger.LogError(ex, "Failed to fetch search history.");
+                return StatusCode(500, "Failed to fetch search history.");
             }
-
-            _customLogger.LogInformation("SearchHistory completed");
-            return Ok(histories);
         }
 
         /// <summary>
@@ -116,55 +133,48 @@ namespace SearchScopeAPI.SerachScope.API
         [HttpGet("SearchHistoryResult")]
         public async Task<IActionResult> GetSearchHistoryResult([FromQuery] int searchHistoryId, [FromQuery] SearchResultEnum? sortBy, [FromQuery] bool isAscending = true)
         {
-            _customLogger.LogInformation("SearchHistoryResult started");
-            if (searchHistoryId <= 0)
+            try
             {
+                _customLogger.LogInformation("SearchHistoryResult started");
+                if (searchHistoryId <= 0)
+                {
+                    _customLogger.LogWarning($"Invalid search history id {searchHistoryId}.");
+                    return BadRequest($"Invalid search history id {searchHistoryId}.");
+                }
+
+                var searchResults = await _mediator.Send(new GetSearchHistoryResultQuery(searchHistoryId, sortBy, isAscending));
+
+                // Check for results.
+                if (searchResults == null || !searchResults.Any())
+                {
+                    _customLogger.LogWarning("No search histories are found.");
+                    return NoContent(); // Returns 204 No Content, if no search histories are found.
+                }
+
                 _customLogger.LogInformation("SearchHistoryResult completed");
-                return BadRequest("Invalid search history id");
+                return Ok(searchResults);
             }
-
-            var searchResults = await _mediator.Send(new GetSearchHistoryResultQuery(searchHistoryId, sortBy, isAscending));
-
-            // Check for results.
-            if (searchResults == null || !searchResults.Any())
+            catch (Exception ex)
             {
-                _customLogger.LogInformation("SearchHistoryResult completed");
-                return NoContent(); // Returns 204 No Content, if no search histories are found.
+                _customLogger.LogError(ex, "Failed to fetch search history result.");
+                return StatusCode(500, "Failed to fetch search history result.");
             }
-
-            _customLogger.LogInformation("SearchHistoryResult completed");
-            return Ok(searchResults);
-        }
-
-        private static bool IsValidProductEnum<TEnum>(string value) where TEnum : struct, Enum
-        {
-            // Check if the provided value can be parsed and is defined in the enum
-            return Enum.TryParse(value, true, out TEnum result)
-                   && Enum.IsDefined(typeof(TEnum), result);
         }
 
         private static int FetchUserId(string token)
         {
-            var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(token);
-            var userIdd = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimsConstant.UserId)?.Value;
-            if (!int.TryParse(userIdd, out var parsedUserId) || parsedUserId == 0)
+            if (!string.IsNullOrWhiteSpace(token))
             {
-                return 0;
+                var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(token);
+                var userIdd = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimsConstant.UserId)?.Value;
+                if (!int.TryParse(userIdd, out var parsedUserId) || parsedUserId == 0)
+                {
+                    return 0;
+                }
+                return parsedUserId;
             }
-            return parsedUserId;
-            //if (!string.IsNullOrWhiteSpace(token))
-            //{
-            //    var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-            //    var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(token);
-            //    var userIdd = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimsConstant.UserId)?.Value;
-            //    if (!int.TryParse(userIdd, out var parsedUserId) || parsedUserId == 0)
-            //    {
-            //        return 0;
-            //    }
-            //    return parsedUserId;
-            //}
-            //return 0;
+            return 0;
         }
     }
 }

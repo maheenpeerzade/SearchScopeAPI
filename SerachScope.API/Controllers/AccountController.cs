@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SearchScopeAPI.SearchScope.Application.Commands;
 using SearchScopeAPI.SearchScope.Core.Interface;
 
-namespace SearchScopeAPI.SerachScope.API
+namespace SearchScopeAPI.SerachScope.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -40,7 +40,7 @@ namespace SearchScopeAPI.SerachScope.API
             var response = await _mediator.Send(command);
             if (response.Token == null)
             {
-                return Unauthorized(new { Message = response.Message });
+                return Unauthorized(new { response.Message });
             }
 
             return Ok(response);
