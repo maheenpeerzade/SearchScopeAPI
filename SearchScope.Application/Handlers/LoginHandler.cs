@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using Microsoft.IdentityModel.Tokens;
-using SearchScopeAPI.SearchScope.Application.Commands;
+using SearchScopeAPI.SearchScope.Core.Commands;
 using SearchScopeAPI.SearchScope.Core.Interface;
 using SearchScopeAPI.SearchScope.Core.Models;
 using SearchScopeAPI.SearchScope.Core.Utility;

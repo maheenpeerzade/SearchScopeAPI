@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using SearchScopeAPI.SearchScope.Application.Commands;
+using SearchScopeAPI.SearchScope.Core.Commands;
 
 namespace SearchScopeAPI.SerachScope.API.Controllers
 {

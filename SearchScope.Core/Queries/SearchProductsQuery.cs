@@ -2,7 +2,7 @@
 using SearchScopeAPI.SearchScope.Core.Models;
 using SearchScopeAPI.SearchScope.Core.Utility;
 
-namespace SearchScopeAPI.SearchScope.Application.Queries
+namespace SearchScopeAPI.SearchScope.Core.Queries
 {
     public class SearchProductsQuery : IRequest<IEnumerable<Product>>
     {

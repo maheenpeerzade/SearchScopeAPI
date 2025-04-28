@@ -1,7 +1,7 @@
 ﻿using MediatR;
-using SearchScopeAPI.SearchScope.Application.Queries;
 using SearchScopeAPI.SearchScope.Core.Interface;
 using SearchScopeAPI.SearchScope.Core.Models;
+using SearchScopeAPI.SearchScope.Core.Queries;
 
 namespace SearchScopeAPI.SearchScope.Application.Handlers
 {

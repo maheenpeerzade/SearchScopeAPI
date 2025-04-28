@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using SearchScopeAPI.SearchScope.Core.Models;
 
-namespace SearchScopeAPI.SearchScope.Application.Commands
+namespace SearchScopeAPI.SearchScope.Core.Commands
 {
     public class LoginCommand : IRequest<LoginResponse>
     {

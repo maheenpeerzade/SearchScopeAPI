@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using SearchScopeAPI.SearchScope.Core.Models;
 
-namespace SearchScopeAPI.SearchScope.Application.Queries
+namespace SearchScopeAPI.SearchScope.Core.Queries
 {
     public class GetSearchHistoryQuery : IRequest<IEnumerable<SearchHistory>>
     {

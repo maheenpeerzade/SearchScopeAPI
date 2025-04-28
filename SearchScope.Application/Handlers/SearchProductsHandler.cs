@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using SearchScopeAPI.SearchScope.Application.Queries;
 using SearchScopeAPI.SearchScope.Core.Interface;
 using SearchScopeAPI.SearchScope.Core.Models;
+using SearchScopeAPI.SearchScope.Core.Queries;
 using SearchScopeAPI.SearchScope.Core.Utility;
 
 namespace SearchScopeAPI.SearchScope.Application.Handlers
