@@ -50,9 +50,9 @@ namespace SearchScopeAPI.SearchScope.Application.Handlers
             // Define claims
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Name, user.Username ?? string.Empty),
-                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim("UserId", user.UserId.ToString()),
+                new Claim("Username", user.Username ?? string.Empty),
+                new Claim("Email", user.Email ?? string.Empty),
             };
 
             // Create the token

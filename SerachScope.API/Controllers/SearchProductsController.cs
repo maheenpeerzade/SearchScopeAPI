@@ -125,10 +125,12 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
         /// <response code="200">List of search result.</response>
         /// <response code="204">Search result not available.</response>
         /// <response code="400">Invalid search history id.</response>
+        /// <response code="401">Unauthorized.</response>
         /// <response code="500">Internal server error.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("SearchHistoryResult")]
         public async Task<IActionResult> GetSearchHistoryResult([FromQuery] int searchHistoryId, [FromQuery] SearchResultEnum? sortBy, [FromQuery] bool isAscending = true)
@@ -136,6 +138,14 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
             try
             {
                 _customLogger.LogInformation("SearchHistoryResult started");
+                string token = Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
+                int userId = FetchUserId(token);
+                if (userId <= 0)
+                {
+                    _customLogger.LogWarning("User in unauthorized");
+                    return Unauthorized("User in unauthorized");
+                }
+
                 if (searchHistoryId <= 0)
                 {
                     _customLogger.LogWarning($"Invalid search history id {searchHistoryId}.");
@@ -167,7 +177,7 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
             {
                 var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
                 var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(token);
-                var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
                 if (!int.TryParse(userId, out var parsedUserId) || parsedUserId == 0)
                 {
                     return 0;
