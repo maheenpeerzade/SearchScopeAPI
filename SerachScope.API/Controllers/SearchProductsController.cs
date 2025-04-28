@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SearchScopeAPI.SearchScope.Application.Queries;
+using SearchScopeAPI.SearchScope.Core.Queries;
 using SearchScopeAPI.SearchScope.Core.Utility;
 using SearchScopeAPI.SerachScope.API.Logger;
 using System.IdentityModel.Tokens.Jwt;
