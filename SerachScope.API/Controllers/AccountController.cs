@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SearchScopeAPI.SearchScope.Core.Commands;
+using SearchScopeAPI.SerachScope.API.Logger;
 
 namespace SearchScopeAPI.SerachScope.API.Controllers
 {
@@ -9,10 +10,12 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly CustomLogger _customLogger;
 
-        public AccountController(IMediator mediator)
+        public AccountController(IMediator mediator, CustomLogger customLogger)
         {
             _mediator = mediator;
+            _customLogger = customLogger;
         }
 
         /// <summary>
@@ -31,15 +34,21 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginCommand command)
         {
+            _customLogger.LogInformation("Login started.");
             if (command == null || string.IsNullOrEmpty(command?.Username) || string.IsNullOrEmpty(command?.Password))
+            {
+                _customLogger.LogWarning("Username or password cannot be empty.");
                 return BadRequest("Username or password cannot be empty.");
+            }
 
             var response = await _mediator.Send(command);
             if (response.Token == null)
             {
+                _customLogger.LogWarning(response.Message);
                 return Unauthorized(new { response.Message });
             }
 
+            _customLogger.LogInformation("Login completed.");
             return Ok(response);
         }
     }
