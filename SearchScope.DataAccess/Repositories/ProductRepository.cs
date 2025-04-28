@@ -1,8 +1,8 @@
-﻿using SearchScopeAPI.SearchScope.Core.Interface;
+﻿using SearchScopeAPI.SearchScope.Core.Interfaces;
 using SearchScopeAPI.SearchScope.Core.Models;
-using SearchScopeAPI.SearchScope.Infrastructure.Data;
+using SearchScopeAPI.SearchScope.DataAccess.Data;
 
-namespace SearchScopeAPI.SearchScope.Infrastructure.Repositories
+namespace SearchScopeAPI.SearchScope.DataAccess.Repositories
 {
     public class ProductRepository : IProductRepository
     {

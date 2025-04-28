@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using SearchScopeAPI.SearchScope.Core.Interface;
+using SearchScopeAPI.SearchScope.Core.Interfaces;
 using SearchScopeAPI.SearchScope.Core.Models;
 using SearchScopeAPI.SearchScope.Core.Queries;
 

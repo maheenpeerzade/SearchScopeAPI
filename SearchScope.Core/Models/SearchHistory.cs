@@ -12,7 +12,7 @@ namespace SearchScopeAPI.SearchScope.Core.Models
         [MaxLength(100)]
         public string? Keyword { get; set; } // The term or phrase used in the search
 
-        public string? FilterCriteria { get; set; } // Any filters applied during the search
+        public string? FilterCriteria { get; set; } // Any filters applied during the search ??
 
         [Required]
         public int UserId { get; set; } // The ID of the user who performed the search

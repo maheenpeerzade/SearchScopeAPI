@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SearchScopeAPI.SearchScope.Core.Models;
 
-namespace SearchScopeAPI.SearchScope.Infrastructure.Data
+namespace SearchScopeAPI.SearchScope.DataAccess.Data
 {
     public class SearchScopeDbContext : DbContext
     {

@@ -14,7 +14,7 @@ namespace SearchScopeAPI.SerachScope.API.Logger
 
             loggerConfig.WriteTo.Console(); // Log to Console.
 
-            loggerConfig.WriteTo.File(path: "./Logs/SearchScopeAPI.logs", rollingInterval: RollingInterval.Day); // Log to File.
+            loggerConfig.WriteTo.File(path: "./SearchScopeAPI/Logs/SearchScopeAPI.logs", rollingInterval: RollingInterval.Day); // Log to File.
 
             _logger = loggerConfig.CreateLogger();
         }

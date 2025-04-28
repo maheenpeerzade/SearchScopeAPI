@@ -1,6 +1,6 @@
 ﻿using SearchScopeAPI.SearchScope.Core.Models;
 
-namespace SearchScopeAPI.SearchScope.Core.Interface
+namespace SearchScopeAPI.SearchScope.Core.Interfaces
 {
     public interface IUserRepository
     {
