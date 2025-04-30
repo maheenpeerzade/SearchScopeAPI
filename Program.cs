@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using SearchScopeAPI.SearchScope.Core.Interfaces;
 using SearchScopeAPI.SearchScope.Core.Utility;
@@ -74,6 +76,22 @@ namespace SearchScopeAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
+                c.MapType<ProductEnum>(() => new OpenApiSchema
+                {
+                    Type = "string",
+                    Enum = Enum.GetNames(typeof(ProductEnum))
+                    .Select(name => (IOpenApiAny)new OpenApiString(name)) // Explicit cast added
+                    .ToList()
+                });
+
+                c.MapType<SearchResultEnum>(() => new OpenApiSchema
+                {
+                    Type = "string",
+                    Enum = Enum.GetNames(typeof(SearchResultEnum))
+                    .Select(name => (IOpenApiAny)new OpenApiString(name)) // Explicit cast added
+                    .ToList()
+                });
+
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using SearchScopeAPI.SearchScope.Core.Interfaces;
 using SearchScopeAPI.SearchScope.Core.Models;
@@ -32,8 +33,17 @@ namespace SearchScopeAPI.SearchScope.Application.Handlers
                 // Apply sorting
                 products = ApplySorting(request.SortBy, request.IsAscending, products);
 
-                // Execute the query
-                return await products.ToListAsync(cancellationToken);
+
+                // Apply pagination
+                var paginatedProducts = products
+                   .Skip((request.PageNumber - 1) * request.PageSize)
+                     .Take(request.PageSize);
+
+                return paginatedProducts.ToList();
+
+
+                //// Execute the query
+                //return await products.ToListAsync(cancellationToken);
             }
             catch (Exception ex)
             {

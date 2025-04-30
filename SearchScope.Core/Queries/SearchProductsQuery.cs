@@ -12,12 +12,17 @@ namespace SearchScopeAPI.SearchScope.Core.Queries
 
         public bool IsAscending { get; }
 
-        public SearchProductsQuery(string? query, string? filter, ProductEnum? sortBy, bool isAscending = true)
+        public int PageNumber { get; }
+        public int PageSize { get; }
+
+        public SearchProductsQuery(string? query, string? filter, ProductEnum? sortBy, bool isAscending = true, int pageNumber = 1, int pageSize = 10)
         {
             Query = query;
             Filter = filter;
             SortBy = sortBy;
             IsAscending = isAscending;
+            PageNumber = pageNumber;
+            PageSize = pageSize;
         }
     }
 }

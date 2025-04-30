@@ -1,11 +1,11 @@
-﻿using MediatR;
+﻿using Azure.Core;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SearchScopeAPI.SearchScope.Core.Queries;
 using SearchScopeAPI.SearchScope.Core.Utility;
 using SearchScopeAPI.SerachScope.API.Logger;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace SearchScopeAPI.SerachScope.API.Controllers
 {
@@ -40,7 +40,8 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
-        public async Task<IActionResult> SearchProducts([FromQuery] string? query, [FromQuery] string? filter, [FromQuery] ProductEnum? sortBy, bool isAscending = true)
+        public async Task<IActionResult> SearchProducts([FromQuery] string? query, [FromQuery] string? filter, [FromQuery] ProductEnum? sortBy, bool isAscending = true, [FromQuery] int pageNumber = 1,
+                                                       [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -51,7 +52,16 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
                     return BadRequest("Query cannot be empty");
                 }
 
-                var result = await _mediator.Send(new SearchProductsQuery(query, filter, sortBy, isAscending));
+                //Check for valid page number and size
+                if (pageNumber <= 0 || pageSize <= 0)
+                {
+                    _customLogger.LogWarning("Invalid page number and page size");
+                    return BadRequest("Please enter valid PageNumber and PageSize. Both must be greater than 0.");
+                }
+
+                var result = await _mediator.Send(new SearchProductsQuery(query, filter, sortBy, isAscending, pageNumber, pageSize));
+
+
 
                 // Check for results.
                 if (result == null || !result.Any())
