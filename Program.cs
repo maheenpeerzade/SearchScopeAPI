@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
@@ -76,6 +75,7 @@ namespace SearchScopeAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
+                //Add Enum values to swagger
                 c.MapType<ProductEnum>(() => new OpenApiSchema
                 {
                     Type = "string",
@@ -92,6 +92,7 @@ namespace SearchScopeAPI
                     .ToList()
                 });
 
+                //Swagger Documentation  
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
@@ -141,6 +142,7 @@ namespace SearchScopeAPI
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "SearchScope API v1");
+                c.RoutePrefix = "swagger";
             });
 
             // HTTPS redirection middleware

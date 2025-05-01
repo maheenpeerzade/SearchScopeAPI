@@ -2,24 +2,45 @@
 
 namespace SearchScopeAPI.SearchScope.Core.Models
 {
+    /// <summary>
+    /// SearchHistory model.
+    /// </summary>
     public class SearchHistory
     {
+        /// <summary>
+        /// HistoryId(Primary Key).
+        /// </summary>
         [Key]
         public int HistoryId { get; set; }
 
+        /// <summary>
+        /// The term or phrase used in the search.
+        /// </summary>
         [Required]
         [MinLength(1)]
         [MaxLength(100)]
-        public string? Keyword { get; set; } // The term or phrase used in the search
+        public string? Keyword { get; set; }
 
-        public string? FilterCriteria { get; set; } // Any filters applied during the search ??
+        /// <summary>
+        /// Any filters applied during the search.
+        /// </summary>
+        public string? FilterCriteria { get; set; }
 
+        /// <summary>
+        /// The ID of the user who performed the search.
+        /// </summary>
         [Required]
-        public int UserId { get; set; } // The ID of the user who performed the search
+        public int UserId { get; set; }
 
-        public DateTime SearchDate { get; set; } // Timestamp of when the search happened
+        /// <summary>
+        /// Timestamp of when the search happened.
+        /// </summary>
+        public DateTime SearchDate { get; set; }
 
+        /// <summary>
+        /// Number of results retrieved from the search.
+        /// </summary>
         [Range(0, int.MaxValue)]
-        public int TotalResults { get; set; } // Number of results retrieved from the search
+        public int TotalResults { get; set; }
     }
 }

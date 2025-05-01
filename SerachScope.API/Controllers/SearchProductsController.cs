@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SearchScopeAPI.SearchScope.Core.Queries;
@@ -9,6 +8,9 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace SearchScopeAPI.SerachScope.API.Controllers
 {
+    /// <summary>
+    /// SearchProductsController class.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -17,6 +19,11 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
         private readonly IMediator _mediator;
         private readonly CustomLogger _customLogger;
 
+        /// <summary>
+        /// Contructor.
+        /// </summary>
+        /// <param name="mediator">Specify mediator.</param>
+        /// <param name="customLogger">Specify CustomLogger.</param>
         public SearchProductsController(IMediator mediator, CustomLogger customLogger)
         {
             _mediator = mediator;
@@ -30,6 +37,8 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
         /// <param name="filter">Specify filter.</param>
         /// <param name="sortBy">Specify sort by.</param>
         /// <param name="isAscending">Specify sorting order.</param>
+        /// <param name="pageNumber">Specify page number.</param>
+        /// <param name="pageSize">Specify page size.</param>
         /// <returns>List of products.</returns>
         /// <response code="200">List of products.</response>
         /// <response code="204">Products not available.</response>
@@ -40,8 +49,7 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
-        public async Task<IActionResult> SearchProducts([FromQuery] string? query, [FromQuery] string? filter, [FromQuery] ProductEnum? sortBy, bool isAscending = true, [FromQuery] int pageNumber = 1,
-                                                       [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> SearchProducts([FromQuery] string? query, [FromQuery] string? filter, [FromQuery] ProductEnum? sortBy, bool isAscending = true, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -60,8 +68,6 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
                 }
 
                 var result = await _mediator.Send(new SearchProductsQuery(query, filter, sortBy, isAscending, pageNumber, pageSize));
-
-
 
                 // Check for results.
                 if (result == null || !result.Any())
@@ -103,8 +109,8 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
                 int userId = FetchUserId(token);
                 if (userId <= 0)
                 {
-                    _customLogger.LogWarning("User in unauthorized");
-                    return Unauthorized("User in unauthorized");
+                    _customLogger.LogWarning("User is unauthorized");
+                    return Unauthorized("User is unauthorized");
                 }
 
                 var histories = await _mediator.Send(new GetSearchHistoryQuery(userId, isAscending));
@@ -152,8 +158,8 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
                 int userId = FetchUserId(token);
                 if (userId <= 0)
                 {
-                    _customLogger.LogWarning("User in unauthorized");
-                    return Unauthorized("User in unauthorized");
+                    _customLogger.LogWarning("User is unauthorized");
+                    return Unauthorized("User is unauthorized");
                 }
 
                 if (searchHistoryId <= 0)

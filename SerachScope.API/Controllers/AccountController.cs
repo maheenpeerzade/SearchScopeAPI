@@ -5,6 +5,9 @@ using SearchScopeAPI.SerachScope.API.Logger;
 
 namespace SearchScopeAPI.SerachScope.API.Controllers
 {
+    /// <summary>
+    /// AccountController class.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
@@ -12,6 +15,11 @@ namespace SearchScopeAPI.SerachScope.API.Controllers
         private readonly IMediator _mediator;
         private readonly CustomLogger _customLogger;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="mediator">Specify mediator.</param>
+        /// <param name="customLogger">Specify CustomLogger.</param>
         public AccountController(IMediator mediator, CustomLogger customLogger)
         {
             _mediator = mediator;
